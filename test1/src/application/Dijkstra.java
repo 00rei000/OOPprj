@@ -173,64 +173,56 @@ class Dijkstra {
         }
     }
     Stack<Node> animatePath(Node start, Node end) {
-
         Stack<Node> path = new Stack<>();
         HashMap<Node, Node> changedAt = new HashMap<>();
         changedAt.put(start, null);
 
         HashMap<Node, Double> shortestPathMap = new HashMap<>();
+        PriorityQueue<Node> pq = new PriorityQueue<>((a, b) -> Double.compare(shortestPathMap.get(a), shortestPathMap.get(b)));
 
         for (Node node : nodes) {
             if (node == start)
                 shortestPathMap.put(start, 0.0);
-            else shortestPathMap.put(node, Double.POSITIVE_INFINITY);
+            else
+                shortestPathMap.put(node, Double.POSITIVE_INFINITY);
         }
 
-        for (Edge edge : start.edges) {
-            shortestPathMap.put(edge.destination, edge.weight);
-            changedAt.put(edge.destination, start);
-        }
+        pq.add(start);
 
-        start.visit();
-
-        while (true) {
-            Node currentNode = closestReachableUnvisited(shortestPathMap);
-
-            if (currentNode == null) {
-                return null;
-            }
+        while (!pq.isEmpty()) {
+            Node currentNode = pq.poll();
 
             if (currentNode == end) {
-
                 Node child = end;
                 path.push(child);
                 while (true) {
                     Node parent = changedAt.get(child);
-                    if (parent == null) {
+                    if (parent == null)
                         break;
-                    }
-
                     path.push(parent);
                     child = parent;
                 }
                 return path;
             }
+
             currentNode.visit();
 
             for (Edge edge : currentNode.edges) {
                 if (edge.destination.isVisited())
                     continue;
 
-                if (shortestPathMap.get(currentNode)
-                        + edge.weight
-                        < shortestPathMap.get(edge.destination)) {
-                    shortestPathMap.put(edge.destination,
-                            shortestPathMap.get(currentNode) + edge.weight);
+                double newDistance = shortestPathMap.get(currentNode) + edge.weight;
+                if (newDistance < shortestPathMap.get(edge.destination)) {
+                    shortestPathMap.put(edge.destination, newDistance);
                     changedAt.put(edge.destination, currentNode);
+                    pq.add(edge.destination);
                 }
             }
         }
+
+        return null; // No path found
     }
+
     private Node closestReachableUnvisited(HashMap<Node, Double> shortestPathMap) {
 
         double shortestDistance = Double.POSITIVE_INFINITY;
